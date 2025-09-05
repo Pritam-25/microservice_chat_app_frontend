@@ -22,6 +22,8 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getAxiosErrorMessage } from "@/utils/axiosError"
 import { PasswordInput } from "@/components/ui/passwordInput"
+import useAuthStore from "@/zustand/useAuthStore"
+import { Loader2 } from "lucide-react"
 
 
 
@@ -30,6 +32,7 @@ export function SignUpForm({
   ...props
 }: React.ComponentProps<"div">) {
 
+  const { setAuthUser } = useAuthStore()
   const router = useRouter()
 
   const form = useForm<SignupInput>({
@@ -43,14 +46,14 @@ export function SignUpForm({
 
   const onSubmit = async (values: SignupInput) => {
     try {
-      const response = await axios.post("http://localhost:5000/auth/v1/signup", values)
+      const response = await axios.post("http://localhost:5000/auth/v1/signup", values, { withCredentials: true })
 
       // Handle success
-      toast.success("Signup successful! Please log in.")
+      toast.success("Successfuly signed up!")
       console.log("✅ Signup successful:", response.data)
-      setTimeout(() => {
-        router.push("/login")
-      }, 1000)
+      setAuthUser(response.data.user.username)
+      router.replace("/chat")
+
     } catch (error: unknown) {
       const msg = getAxiosErrorMessage(error)
       toast.error(msg)
@@ -128,8 +131,19 @@ export function SignUpForm({
                   )}
                 />
 
-                <Button type="submit" className="w-full">
-                  Sign Up
+                <Button
+                  type="submit"
+                  className="w-full cursor-pointer"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing up...
+                    </span>
+                  ) : (
+                    "Sign Up"
+                  )}
                 </Button>
 
                 <div className="text-center text-sm">

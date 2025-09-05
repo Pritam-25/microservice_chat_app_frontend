@@ -21,12 +21,16 @@ import { useRouter } from "next/navigation"
 import { loginSchema, LoginInput } from "@/lib/schemas"
 import { getAxiosErrorMessage } from "@/utils/axiosError"
 import { PasswordInput } from "@/components/ui/passwordInput"
+import useAuthStore from "@/zustand/useAuthStore"
+import { Loader2 } from "lucide-react"
 
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+
+  const { setAuthUser } = useAuthStore()
   const router = useRouter()
 
   const form = useForm<LoginInput>({
@@ -45,10 +49,8 @@ export function LoginForm({
 
       toast.success("Login successful!")
       console.log("✅ Login successful:", response.data)
-
-      setTimeout(() => {
-        router.push("/dashboard") // redirect after login
-      }, 1000)
+      setAuthUser(response.data.user.username)
+      router.replace("/chat") // redirect after login
     } catch (error: unknown) {
       const msg = getAxiosErrorMessage(error)
       toast.error(msg)
@@ -82,7 +84,7 @@ export function LoginForm({
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="m@example.com" {...field} />
+                        <Input type="email" placeholder="m@example.com" {...field} autoFocus />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -113,8 +115,19 @@ export function LoginForm({
                 />
 
                 {/* Submit */}
-                <Button type="submit" className="w-full">
-                  Login
+                <Button
+                  type="submit"
+                  className="w-full cursor-pointer"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Logging in...
+                    </span>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
 
                 {/* Switch to signup */}

@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import ChatApp from "./chat-app";
+import ChatApp from "./chat/page";
 
 export default function Home() {
   return (
